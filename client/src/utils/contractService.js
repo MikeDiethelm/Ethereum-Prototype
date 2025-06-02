@@ -177,3 +177,8 @@ export const offLotReturned = () => {
         contract.removeAllListeners("LotReturned");
     }
 };
+
+export const getTokenURI = async (tokenId) => {
+    await initialize();
+    return contract.tokenURI(tokenId);
+};

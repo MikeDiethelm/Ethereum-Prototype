@@ -9,12 +9,13 @@ import {
     requestAccount,
     returnToManufacturer
 } from "../utils/contractService";
+import { uploadToIPFS } from "../utils/ipfsService"; // ✅ NEU
 import { toast } from "react-toastify";
 
 function ContractActions({ role }) {
     const [lotId, setLotId] = useState("");
-    const [uri, setUri] = useState("");
     const [status, setStatus] = useState("");
+    const [imageFile, setImageFile] = useState(null); // ✅ NEU
 
     const [stepName, setStepName] = useState("");
     const [stepNote, setStepNote] = useState("");
@@ -24,7 +25,7 @@ function ContractActions({ role }) {
     const [to, setTo] = useState("");
     const [transferId, setTransferId] = useState("");
 
-    const [rejectNote, setRejectNote] = useState(""); // ✅ NEU
+    const [rejectNote, setRejectNote] = useState("");
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -41,8 +42,19 @@ function ContractActions({ role }) {
 
     const handleMint = async () => {
         try {
+            if (!imageFile) {
+                toast.error("Bitte ein Bild auswählen.");
+                return;
+            }
+
+            const tokenUri = await uploadToIPFS(
+                `Implantat Lot ${lotId}`,
+                "Ein medizinisches Implantat mit vollständiger Produktionshistorie.",
+                imageFile
+            );
+
             const currentAccount = await requestAccount();
-            await mintLot(currentAccount, lotId, uri);
+            await mintLot(currentAccount, lotId, tokenUri);
             toast.success("NFT erfolgreich gemintet!");
         } catch (e) {
             toast.error("Mint fehlgeschlagen: " + e.message);
@@ -76,21 +88,21 @@ function ContractActions({ role }) {
         }
     };
 
-    const handleTransfer = async () => {
-        try {
-            await transferNFT(from, to, transferId);
-            toast.success("Transfer erfolgreich!");
-        } catch (e) {
-            toast.error("Fehler beim Transfer: " + e.message);
-        }
-    };
-
     const handleReturn = async () => {
         try {
             await returnToManufacturer(lotId, rejectNote);
             toast.info("Lot zur Reparatur zurückgegeben.");
         } catch (e) {
             toast.error("Fehler beim Zurückgeben: " + e.message);
+        }
+    };
+
+    const handleTransfer = async () => {
+        try {
+            await transferNFT(from, to, transferId);
+            toast.success("Transfer erfolgreich!");
+        } catch (e) {
+            toast.error("Fehler beim Transfer: " + e.message);
         }
     };
 
@@ -109,9 +121,9 @@ function ContractActions({ role }) {
                 onChange={(e) => setLotId(e.target.value)}
             />
             <input
-                placeholder="Token URI (z. B. https://...)"
-                value={uri}
-                onChange={(e) => setUri(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files[0])}
             />
             <button
                 onClick={handleMint}
@@ -157,19 +169,9 @@ function ContractActions({ role }) {
             <button
                 onClick={handleStep}
                 disabled={!["Hersteller", "Admin"].includes(role)}
-                title={
-                    !["Hersteller", "Admin"].includes(role)
-                        ? "Nur Hersteller oder Admin dürfen Produktionsschritte hinzufügen"
-                        : ""
-                }
             >
                 Schritt hinzufügen
             </button>
-            {!["Hersteller", "Admin"].includes(role) && (
-                <p style={{ color: "gray", fontSize: "0.9em" }}>
-                    🔒 Nur Hersteller oder Admin dürfen Produktionsschritte hinzufügen.
-                </p>
-            )}
 
             <hr />
 
@@ -177,21 +179,11 @@ function ContractActions({ role }) {
             <button
                 onClick={handleClose}
                 disabled={!["Qualitätssicherung", "Admin"].includes(role)}
-                title={
-                    !["Qualitätssicherung", "Admin"].includes(role)
-                        ? "Nur für Qualitätssicherung oder Admin"
-                        : ""
-                }
             >
                 Lot abschließen
             </button>
-            {!["Qualitätssicherung", "Admin"].includes(role) && (
-                <p style={{ color: "gray", fontSize: "0.9em" }}>
-                    🔒 Diese Aktion ist nur für Qualitätssicherung oder Admin verfügbar.
-                </p>
-            )}
 
-            {/* Lot ablehnen */}
+            {/* Lot ablehnen / zurück */}
             <div style={{ marginTop: "1em" }}>
                 <input
                     placeholder="Ablehnungsgrund"
@@ -201,18 +193,15 @@ function ContractActions({ role }) {
                 <button
                     onClick={handleReject}
                     disabled={!["Qualitätssicherung", "Admin"].includes(role)}
-                    title="Lot wird in den Status 'Ausschuss' gesetzt"
                 >
                     Lot ablehnen
                 </button>
                 <button
                     onClick={handleReturn}
                     disabled={!["Qualitätssicherung", "Admin"].includes(role)}
-                    title="Lot wird zur Reparatur freigegeben"
                 >
                     Lot zurück an Hersteller
                 </button>
-
             </div>
 
             <hr />
@@ -237,11 +226,6 @@ function ContractActions({ role }) {
             <button
                 onClick={handleTransfer}
                 disabled={!isTransferAllowed}
-                title={
-                    !isTransferAllowed
-                        ? "Transfer nur erlaubt, wenn Status 'Abgeschlossen' und passende Rolle"
-                        : ""
-                }
             >
                 NFT übertragen
             </button>
