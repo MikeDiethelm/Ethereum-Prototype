@@ -1,0 +1,18 @@
+# Node
+node_modules/
+.env
+dist/
+build/
+.cache/
+
+# Hardhat
+artifacts/
+cache/
+coverage/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+contract/constants.ts
