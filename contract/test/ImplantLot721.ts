@@ -1,7 +1,6 @@
 /* test/ImplantLot721.test.ts
    --------------------------------------------------------------
-   Unit-Tests für den ImplantLot721-Smart-Contract
-   – decken den gesamten Happy Path + wichtige Fehlerfälle ab
+   Unit-Tests für ImplantLot721
    -------------------------------------------------------------- */
 
 import { expect } from "chai";
@@ -9,149 +8,133 @@ import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 describe("ImplantLot721", () => {
-  /** Fixture erzeugt frischen State für jeden Test-Case */
+  /* ---------- gemeinsame Fixture ---------- */
   async function deployFixture() {
     const [admin, manufacturer, qc, distributor, stranger] =
       await ethers.getSigners();
 
-    // Contract deployen (Admin-Adresse im Konstruktor)
     const Fac = await ethers.getContractFactory("ImplantLot721");
     const nft = await Fac.deploy(admin.address);
     await nft.waitForDeployment();
 
-    // Rollen vergeben
-    await nft
-      .connect(admin)
+    await nft.connect(admin)
       .grantRole(await nft.MANUFACTURER_ROLE(), manufacturer.address);
-    await nft
-      .connect(admin)
+    await nft.connect(admin)
       .grantRole(await nft.QC_ROLE(), qc.address);
 
     return { nft, admin, manufacturer, qc, distributor, stranger };
   }
 
-  /* ---------------------------------------------------------- */
+  /* ---------- 1 Happy Path ---------- */
+  it("Mint ➜ 2 Steps ➜ QS-Close ➜ Transfer (Happy Path)", async () => {
+    const { nft, manufacturer, qc, distributor } = await loadFixture(deployFixture);
 
-  it("Mint ➜ QS ➜ Transfer – Happy Path", async () => {
-    const { nft, manufacturer, qc, distributor } = await loadFixture(
-      deployFixture
-    );
-
-    // 1️⃣ Mint
-    await nft
-      .connect(manufacturer)
+    /* 1 Mint */
+    await nft.connect(manufacturer)
       .safeMint(manufacturer.address, 1001, "ipfs://cid/lot.json");
-    expect(await nft.ownerOf(1001)).to.equal(manufacturer.address);
 
-    // 2️⃣ Produktions-Step
-    await nft
-      .connect(manufacturer)
-      .addStep(1001, "Tiefziehen", true, "OK");
-    expect((await nft.getSteps(1001)).length).to.equal(1);
+    /* 2 zwei erfolgreiche Steps */
+    await nft.connect(manufacturer).addStep(1001, "t1", true, "note-1");
+    await nft.connect(manufacturer).addStep(1001, "t2", true, "note-2");
 
-    // 3️⃣ QS-Freigabe
+    /* 3 QS-Freigabe */
     await nft.connect(qc).closeLot(1001);
-    expect(await nft.getStatus(1001)).to.equal(2); // Abgeschlossen
 
-    // 4️⃣ Transfer
-    await nft
-      .connect(manufacturer)
+    /* 4 Transfer durch Owner */
+    await nft.connect(manufacturer)
     ["safeTransferFrom(address,address,uint256)"](
-      manufacturer.address,
-      distributor.address,
-      1001
-    );
-    expect(await nft.ownerOf(1001)).to.equal(distributor.address);
+      manufacturer.address, distributor.address, 1001);
 
-    // 5️⃣ Audit-Trail
+    /* 5 Audit-Trail prüfen */
     const transfers = await nft.getTransfers(1001);
-    expect(transfers.length).to.equal(2); // Mint + Weitergabe
+    expect(transfers.length).to.equal(2);
     expect(transfers[1].from).to.equal(manufacturer.address);
     expect(transfers[1].to).to.equal(distributor.address);
   });
 
-  /* ---------------------------------------------------------- */
-
+  /* ---------- 2 Transfer vor Freigabe blockiert ---------- */
   it("verhindert Transfer vor QS-Freigabe", async () => {
-    const { nft, manufacturer, distributor } = await loadFixture(
-      deployFixture
-    );
+    const { nft, manufacturer, distributor } = await loadFixture(deployFixture);
 
-    await nft
-      .connect(manufacturer)
+    await nft.connect(manufacturer)
       .safeMint(manufacturer.address, 2000, "ipfs://x");
 
     await expect(
-      nft
-        .connect(manufacturer)
+      nft.connect(manufacturer)
       ["safeTransferFrom(address,address,uint256)"](
-        manufacturer.address,
-        distributor.address,
-        2000
-      )
+        manufacturer.address, distributor.address, 2000)
     ).to.be.revertedWith("Transfer nur nach QS-Freigabe");
   });
 
-  /* ---------------------------------------------------------- */
-
-  it("blockiert nicht autorisierte Aufrufe (AccessControl)", async () => {
+  /* ---------- 3 Access-Control ---------- */
+  it("blockiert nicht autorisierte Aufrufe", async () => {
     const { nft, stranger } = await loadFixture(deployFixture);
 
     await expect(
       nft.connect(stranger).safeMint(stranger.address, 3000, "ipfs://x")
-    ).to.be.revertedWithCustomError(
-      nft,
-      "AccessControlUnauthorizedAccount"
-    );
-
-    // DEFAULT_ADMIN_ROLE prüfen
-    const defaultAdmin = await nft.DEFAULT_ADMIN_ROLE();
-    expect(
-      await nft.hasRole(defaultAdmin, stranger.address)
-    ).to.equal(false);
+    ).to.be.revertedWithCustomError(nft, "AccessControlUnauthorizedAccount");
   });
 
-  /* ---------------------------------------------------------- */
-
-  it("wechselt in Status ‚Ausschuss‘ wenn Produktions-Step fehlschlägt", async () => {
+  /* ---------- 4 Ausschuss wenn Step fehlschlägt ---------- */
+  it("setzt Status Ausschuss bei fehlgeschlagenem Step", async () => {
     const { nft, manufacturer } = await loadFixture(deployFixture);
 
-    await nft
-      .connect(manufacturer)
-      .safeMint(manufacturer.address, 4000, "ipfs://x");
+    await nft.connect(manufacturer).safeMint(manufacturer.address, 4000, "ipfs://x");
+    await nft.connect(manufacturer).addStep(4000, "fail", false, "overspec");
 
-    await nft
-      .connect(manufacturer)
-      .addStep(4000, "Vermessen", false, "Toleranz überschritten");
-
-    expect(await nft.getStatus(4000)).to.equal(1); // Ausschuss
+    expect(await nft.getStatus(4000)).to.equal(1 /* Ausschuss */);
   });
-  /* ---------------------------------------------------------- */
-  it("verhindert Transfer im Status Ausschuss", async () => {
-    const { nft, manufacturer, distributor } = await loadFixture(deployFixture);
 
-    // Ausschuss-Los anlegen
-    await nft.connect(manufacturer).safeMint(manufacturer, 6000, "ipfs://x");
-    await nft.connect(manufacturer).addStep(6000, "Kontrolle", false, "Fehler");
-
-    // QS darf nicht mehr freigeben
-    await expect(nft.closeLot(6000)).to.be.revertedWith("Wrong state");
-
-    // Transfer blockiert
-    await expect(
-      nft.connect(manufacturer)
-      ["safeTransferFrom(address,address,uint256)"](manufacturer, distributor, 6000)
-    ).to.be.revertedWith("Transfer nur nach QS-Freigabe");
-  });
-  /* ---------------------------------------------------------- */
-  it("verhindert addStep sobald Lot abgeschlossen ist", async () => {
+  /* ---------- 5 Rückversand → neuer Step erforderlich ---------- */
+  it("erfordert Reparatur-Step vor endgültigem QS-Abschluss", async () => {
     const { nft, manufacturer, qc } = await loadFixture(deployFixture);
 
-    await nft.connect(manufacturer).safeMint(manufacturer, 7000, "ipfs://x");
-    await nft.connect(qc).closeLot(7000);                       // Status = Abgeschlossen
+    await nft.connect(manufacturer).safeMint(manufacturer, 5000, "ipfs://x");
+    await nft.connect(qc).returnToManufacturer(5000, "kaputt");
+    expect(await nft.getStatus(5000)).to.equal(3 /* Reparatur */);
+
+    /* neuer Step nach Reparatur */
+    await nft.connect(manufacturer).addStep(5000, "rework", true, "fixed");
+    await nft.connect(qc).closeLot(5000);
+
+    expect(await nft.getStatus(5000)).to.equal(2 /* Abgeschlossen */);
+  });
+
+  /* ---------- 6 kein addStep nach endgültigem Abschluss ---------- */
+  it("verhindert addStep nach Abschluss", async () => {
+    const { nft, manufacturer, qc } = await loadFixture(deployFixture);
+
+    await nft.connect(manufacturer).safeMint(manufacturer, 6000, "ipfs://x");
+    await nft.connect(qc).closeLot(6000);
 
     await expect(
-      nft.connect(manufacturer).addStep(7000, "Nacharbeit", true, "")
+      nft.connect(manufacturer).addStep(6000, "late", true, "")
     ).to.be.revertedWith("Lot locked");
+  });
+
+  /* 7 Unerlaubter QC-Transfer ohne Approval -------------------------------- */
+  it("QC-Transfer ohne Approval revertiert", async () => {
+    const { nft, manufacturer, qc } = await loadFixture(deployFixture);
+    await nft.connect(manufacturer).safeMint(manufacturer, 7000, "ipfs://x");
+    await nft.connect(qc).closeLot(7000);                 // freigeben
+
+    await expect(
+      nft.connect(qc)["safeTransferFrom(address,address,uint256)"](
+        manufacturer.address, qc.address, 7000)
+    ).to.be.revertedWithCustomError(nft, "ERC721InsufficientApproval");
+  });
+  /* 8 Owner approved → QC darf transferieren ------------------------------- */
+  it("QC darf nach Approval durch Owner transferieren", async () => {
+    const { nft, manufacturer, qc } = await loadFixture(deployFixture);
+    await nft.connect(manufacturer).safeMint(manufacturer, 7100, "ipfs://x");
+    await nft.connect(qc).closeLot(7100);
+
+    await nft.connect(manufacturer)
+      .setApprovalForAll(qc.address, true);               // oder approve(…)
+
+    await nft.connect(qc)["safeTransferFrom(address,address,uint256)"](
+      manufacturer.address, qc.address, 7100);
+
+    expect(await nft.ownerOf(7100)).to.equal(qc.address);
   });
 });

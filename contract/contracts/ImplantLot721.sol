@@ -21,13 +21,15 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
         string name;
         uint256 timestamp;
         bool bestanden;
-        string bemerkung;
+        bytes32 bemerkungHash;
     }
+
     struct TransferRec {
         address from;
         address to;
         uint256 timestamp;
     }
+
     struct LotData {
         Status status;
         Step[] history;
@@ -76,12 +78,14 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
             "Lot locked"
         );
 
+        bytes32 noteHash = keccak256(abi.encodePacked(note));
+
         lot.history.push(
             Step({
                 name: n,
                 timestamp: block.timestamp,
                 bestanden: ok,
-                bemerkung: note
+                bemerkungHash: noteHash
             })
         );
 
@@ -93,10 +97,29 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
     /* ---------- QS-Freigabe ---------- */
     function closeLot(uint256 id) external onlyRole(QC_ROLE) {
         LotData storage lot = _lotInfo[id];
+
         require(
             lot.status == Status.InProduktion || lot.status == Status.Reparatur,
             "Wrong state"
         );
+
+        // Wenn vorher "Zurueck an Hersteller", muss ein neuer Schritt erfolgt sein
+        if (lot.status == Status.Reparatur) {
+            require(lot.history.length >= 2, "Nicht genug Historie");
+
+            Step memory lastStep = lot.history[lot.history.length - 1];
+            Step memory secondLastStep = lot.history[lot.history.length - 2];
+
+            // Sicherstellen, dass ein neuer Schritt nach Rückversand existiert
+            require(
+                keccak256(bytes(secondLastStep.name)) ==
+                    keccak256("Zurueck an Hersteller") &&
+                    keccak256(bytes(lastStep.name)) !=
+                    keccak256("Zurueck an Hersteller"),
+                "Kein neuer Schritt nach Rueckversand"
+            );
+        }
+
         lot.status = Status.Abgeschlossen;
     }
 
@@ -111,17 +134,19 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
             "Wrong state"
         );
 
+        bytes32 noteHash = keccak256(abi.encodePacked(note));
+
         lot.history.push(
             Step({
                 name: "QS-Ablehnung",
                 timestamp: block.timestamp,
                 bestanden: false,
-                bemerkung: note
+                bemerkungHash: noteHash
             })
         );
         lot.status = Status.Ausschuss;
 
-        emit LotRejected(id, _msgSender(), note);
+        emit LotRejected(id, _msgSender(), note); // Event kann weiterhin Klartext enthalten
     }
 
     /* ---------- Zurück an Hersteller ---------- */
@@ -135,17 +160,31 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
             "Wrong state"
         );
 
+        bytes32 noteHash = keccak256(abi.encodePacked(note));
+
         lot.history.push(
             Step({
                 name: "Zurueck an Hersteller",
                 timestamp: block.timestamp,
                 bestanden: false,
-                bemerkung: note
+                bemerkungHash: noteHash
             })
         );
         lot.status = Status.Reparatur;
 
         emit LotReturned(id, _msgSender(), note);
+    }
+
+    /* ---------- Erweiterte Zugriffsprüfung ---------- */
+    function isApprovedOrOwner(
+        address spender,
+        uint256 tokenId
+    ) public view returns (bool) {
+        address owner = _ownerOf(tokenId);
+        return (spender == owner ||
+            getApproved(tokenId) == spender ||
+            isApprovedForAll(owner, spender) ||
+            hasRole(QC_ROLE, spender));
     }
 
     /* ---------- Transfer-Hook ---------- */
@@ -154,19 +193,20 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
         uint256 id,
         address auth
     ) internal override(ERC721) returns (address from) {
-        // Vor dem Transfer QS-Freigabe prüfen
         address ownerBefore = _ownerOf(id);
         if (ownerBefore != address(0) && to != address(0)) {
             require(
                 _lotInfo[id].status == Status.Abgeschlossen,
                 "Transfer nur nach QS-Freigabe"
             );
+            require(
+                isApprovedOrOwner(auth, id),
+                "Nicht berechtigt, Transfer auszufuehren"
+            );
         }
 
-        // Standard-Update ausführen
         from = super._update(to, id, auth);
 
-        // Nach Transfer loggen
         if (from != address(0)) {
             _lotInfo[id].transfers.push(
                 TransferRec({from: from, to: to, timestamp: block.timestamp})
@@ -178,9 +218,11 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
     function getStatus(uint256 id) external view returns (Status) {
         return _lotInfo[id].status;
     }
+
     function getSteps(uint256 id) external view returns (Step[] memory) {
         return _lotInfo[id].history;
     }
+
     function getTransfers(
         uint256 id
     ) external view returns (TransferRec[] memory) {

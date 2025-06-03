@@ -94,12 +94,13 @@ export const getSteps = async (lotId) => {
     await initialize();
     const steps = await contract.getSteps(Number(lotId));
     return steps.map((s) => ({
-        name: s.name,
-        timestamp: new Date(Number(s.timestamp) * 1000).toLocaleString(),
-        bestanden: s.bestanden,
-        bemerkung: s.bemerkung,
+        name: s[0],
+        timestamp: new Date(Number(s[1]) * 1000).toLocaleString(),
+        bestanden: s[2],
+        bemerkungHash: s[3], // s[3] ist jetzt der Hash
     }));
 };
+
 
 export const getTransfers = async (lotId) => {
     await initialize();
@@ -176,4 +177,19 @@ export const offLotReturned = () => {
     if (contract) {
         contract.removeAllListeners("LotReturned");
     }
+};
+
+export const canBeClosed = async (lotId) => {
+    await initialize();
+    const steps = await contract.getSteps(Number(lotId));
+
+    if (steps.length < 2) return true;
+
+    const last = steps[steps.length - 1];
+    const secondLast = steps[steps.length - 2];
+
+    const isLastReturn = secondLast.name === "Zurueck an Hersteller";
+    const isReacted = last.name !== "Zurueck an Hersteller";
+
+    return !(isLastReturn && !isReacted);
 };

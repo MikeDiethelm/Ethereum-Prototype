@@ -7,7 +7,8 @@ import {
     transferNFT,
     rejectLot,
     requestAccount,
-    returnToManufacturer
+    returnToManufacturer,
+    canBeClosed
 } from "../utils/contractService";
 import { toast } from "react-toastify";
 
@@ -25,19 +26,31 @@ function ContractActions({ role }) {
     const [transferId, setTransferId] = useState("");
 
     const [rejectNote, setRejectNote] = useState(""); // ✅ NEU
+    const [closable, setClosable] = useState(true); // 🆕
+
 
     useEffect(() => {
         const fetchStatus = async () => {
-            if (!lotId) return setStatus("");
+            if (!lotId) {
+                setStatus("");
+                setClosable(true);
+                return;
+            }
+
             try {
                 setStatus(await getLotStatus(lotId));
+
+                const result = await canBeClosed(lotId); // 🆕
+                setClosable(result);
             } catch (e) {
                 console.error("Status-Abruf fehlgeschlagen:", e);
                 setStatus("unbekannt");
+                setClosable(true);
             }
         };
         fetchStatus();
     }, [lotId]);
+
 
     const handleMint = async () => {
         try {
@@ -52,6 +65,7 @@ function ContractActions({ role }) {
     const handleStep = async () => {
         try {
             await addStep(lotId, stepName, stepOK, stepNote);
+            localStorage.setItem(`note-${lotId}-${stepName}`, stepNote); // ✅ Save
             toast.success("Schritt hinzugefügt.");
         } catch (e) {
             toast.error("Fehler beim Hinzufügen: " + e.message);
@@ -70,6 +84,7 @@ function ContractActions({ role }) {
     const handleReject = async () => {
         try {
             await rejectLot(lotId, rejectNote);
+            localStorage.setItem(`note-${lotId}-QS-Ablehnung`, rejectNote);
             toast.warn("Lot wurde abgelehnt!");
         } catch (e) {
             toast.error("Fehler beim Ablehnen: " + e.message);
@@ -88,6 +103,7 @@ function ContractActions({ role }) {
     const handleReturn = async () => {
         try {
             await returnToManufacturer(lotId, rejectNote);
+            localStorage.setItem(`note-${lotId}-Zurueck an Hersteller`, rejectNote);
             toast.info("Lot zur Reparatur zurückgegeben.");
         } catch (e) {
             toast.error("Fehler beim Zurückgeben: " + e.message);
@@ -176,15 +192,20 @@ function ContractActions({ role }) {
             {/* Lot abschließen */}
             <button
                 onClick={handleClose}
-                disabled={!["Qualitätssicherung", "Admin"].includes(role)}
+                disabled={
+                    !["Qualitätssicherung", "Admin"].includes(role) || !closable
+                }
                 title={
                     !["Qualitätssicherung", "Admin"].includes(role)
                         ? "Nur für Qualitätssicherung oder Admin"
-                        : ""
+                        : !closable
+                            ? "Ein neuer Schritt nach Rückversand ist erforderlich"
+                            : ""
                 }
             >
                 Lot abschließen
             </button>
+
             {!["Qualitätssicherung", "Admin"].includes(role) && (
                 <p style={{ color: "gray", fontSize: "0.9em" }}>
                     🔒 Diese Aktion ist nur für Qualitätssicherung oder Admin verfügbar.

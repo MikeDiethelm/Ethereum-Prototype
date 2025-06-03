@@ -90,7 +90,7 @@ function App() {
                     {["Hersteller", "Admin"].includes(role) && <RoleManager />}
                     {["Hersteller", "Qualitätssicherung", "Admin"].includes(role) && (
                         <>
-                            <LotHistory />
+                            <LotHistory role={role} />
                             <TransferHistory />
                             <NFTPreview />
                         </>
