@@ -10,11 +10,11 @@ Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 
 | Kategorie | Feature |
 |-----------|---------|
-| NFT / Contract | ERC-721-Token pro Produktionslos • Rollenbasiertes Access Control (`MANUFACTURER`, `QC`, `ADMIN`) |
-| Produktions­historie | Schritt-Hash on-chain (keine Klartextdaten) • Klartext-Bemerkungen off-chain (Browser-Storage / DB) |
-| QS-Workflow | `closeLot`, `rejectLot`, `returnToManufacturer` inkl. Hash-Verifizierung im UI |
-| Frontend | React + ethers.js • MetaMask-Login • Rollenverwaltung, Tabellen (Steps & Transfers), PDF-Audit-Export |
-| Tests | Hardhat + solidity-coverage (aktuell ≈ 83 % Stmts / 65 % Branch) |
+| NFT / Contract       | ERC-721-Token pro Produktionslos • Rollenbasiertes Access Control (`MANUFACTURER`, `QC`, `ADMIN`) |
+| Produktions­historie  | Schritt-Hash on-chain (keine Klartextdaten) • Klartext-Bemerkungen off-chain (Browser-Storage / DB) |
+| QS-Workflow          | `closeLot`, `rejectLot`, `returnToManufacturer` inkl. Hash-Verifizierung im UI |
+| Frontend             | React + ethers.js • MetaMask-Login • Rollenverwaltung, Tabellen (Steps & Transfers), PDF-Audit-Export |
+| Tests                | Hardhat + solidity-coverage (aktuell ≈ 83 % Stmts / 65 % Branch) |
 
 ---
 
