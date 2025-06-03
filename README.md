@@ -20,7 +20,6 @@ Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 
 ## 🧱 Projektstruktur
 
-```text
 Ethereum-Prototype
 ├─ client/                       # React-App
 │  ├─ public/                    # statische Assets
