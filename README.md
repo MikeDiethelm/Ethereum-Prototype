@@ -22,23 +22,46 @@ Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 
 ```text
 Ethereum-Prototype
-├─ contract/                # Hardhat-Workspace
-│  ├─ contracts/            # Solidity-Quellcode
-│  │   └─ ImplantLot721.sol
-│  ├─ scripts/ deploy.ts    # Deploy + ABI/Addr-Export
-│  ├─ test/                 # TypeScript-Unit-Tests
-│  ├─ hardhat.config.ts
-│  └─ .solcover.js
+├─ client/                       # React-App
+│  ├─ public/                    # statische Assets
+│  ├─ src/
+│  │  ├─ components/             # UI-Bausteine
+│  │  │  ├─ AuditReport.jsx
+│  │  │  ├─ ConnectWalletButton.jsx
+│  │  │  ├─ ContractActions.jsx
+│  │  │  ├─ ContractInfo.jsx
+│  │  │  ├─ LotHistory.jsx
+│  │  │  ├─ NFTPreview.jsx
+│  │  │  ├─ RoleManager.jsx
+│  │  │  └─ TransferHistory.jsx
+│  │  ├─ utils/
+│  │  │  ├─ contractService.js   # Call-Wrapper (ethers.js)
+│  │  │  └─ constants.js         # ⚠️ wird beim Deploy überschrieben
+│  │  ├─ App.jsx
+│  │  ├─ App.css
+│  │  ├─ index.js
+│  │  └─ index.css
+│  ├─ package.json               # Frontend-Dependencies
+│  └─ README.md                  # (optional projektspezifisch)
 │
-└─ client/                  # React-App
-   ├─ src/
-   │  ├─ components/        # UI-Bausteine
-   │  │   └─ (ConnectWalletButton … AuditReport …)
-   │  ├─ utils/
-   │  │   ├─ contractService.js
-   │  │   └─ constants.js   # ⚠️ wird beim Deploy überschrieben
-   │  └─ App.jsx
-   └─ vite.config.js
+└─ contract/                     # Hardhat-Workspace
+   ├─ contracts/
+   │  └─ ImplantLot721.sol       # ERC-721-Smart-Contract
+   ├─ scripts/
+   │  └─ deploy.ts               # Deployment + ABI/Addr-Export → client
+   ├─ test/
+   │  └─ ImplantLot721.ts        # TypeScript-Unit- & Coverage-Tests
+   ├─ artifacts/                 # Build-Artefakte (autogen)
+   ├─ cache/                     # Hardhat-Cache (autogen)
+   ├─ coverage/                  # solidity-coverage HTML/JSON
+   ├─ ignition/                  # (Hardhat Ignition Boilerplate)
+   ├─ typechain-types/           # Typings für Ethers v6
+   ├─ constants.ts               # RPC / Private-Key Konfig
+   ├─ hardhat.config.ts
+   ├─ .solcover.js               # Coverage-Konfiguration
+   ├─ package.json               # Contract-Dependencies
+   └─ README.md                  # (optional Contract-Readme)
+
 ````
 
 ---
