@@ -75,7 +75,7 @@ npx hardhat run scripts/deploy.ts --network zhaw
 ```bash
 cd ../client
 npm install          # einmalig
-npm run dev          # Vite-Dev-Server
+npm start          
 # Browser: http://localhost:3000
 ```
 
@@ -108,7 +108,6 @@ npm run dev          # Vite-Dev-Server
 cd contract
 npx hardhat test                # Unit-Tests (8 passing)
 npx hardhat coverage            # Sol-Coverage Report
-open coverage/index.html        # HTML-Abdeckung lokal anzeigen
 ```
 
 Beispiel Output:
@@ -141,15 +140,3 @@ Smart-Contract basiert auf OpenZeppelin v5.0.
 
 > **Hinweis**
 > Dies ist ein Proof-of-Concept. Vor einem produktiven Einsatz sind Hardening, Security-Audit sowie MDR / FDA-konforme Validierung erforderlich.
-
-```
-
-**Was wurde angepasst?**
-
-- Doppelten „Setup & Deployment“-Block zusammengeführt  
-- Aktuelle Komponentennamen (AuditReport, RoleManager, usw.) ergänzt  
-- Off-Chain-Speicher / Hash-Only-Policy erläutert  
-- Commands für `coverage` ergänzt  
-- Klarer Hinweis, dass `constants.js` beim Deploy überschrieben wird  
-- Sicherheitsnotiz + Lizenzblock hinzugefügt.
-```
