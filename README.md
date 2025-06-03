@@ -8,8 +8,8 @@ Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 
 ## ⚙️ Funktionsumfang
 
-| Kategorie | Feature |
-|-----------|---------|
+| Kategorie            | Feature |
+|----------------------|---------|
 | NFT / Contract       | ERC-721-Token pro Produktionslos • Rollenbasiertes Access Control (`MANUFACTURER`, `QC`, `ADMIN`) |
 | Produktions­historie  | Schritt-Hash on-chain (keine Klartextdaten) • Klartext-Bemerkungen off-chain (Browser-Storage / DB) |
 | QS-Workflow          | `closeLot`, `rejectLot`, `returnToManufacturer` inkl. Hash-Verifizierung im UI |
@@ -105,11 +105,11 @@ npm start
 
 ## ✅ Schnelltest-Workflow
 
-| #   | Aktion                                                        | Rolle                      |
-| --- | ------------------------------------------------------------- | -------------------------- |
+| #   | Aktion                                                       | Rolle                      |
+| --- | -------------------------------------------------------------|--------------------------- |
 | 1️⃣ | Wallet verbinden                                              | –                          |
 | 2️⃣ | **Mint NFT** · Lot ID `1001`, URI `ipfs://…`                  | MANUFACTURER               |
-| 3️⃣ | Produktions­schritt `Reinigung`, Bemerkung „Ultraschall“ ✓ ok | MANUFACTURER               |
+| 3️⃣ | Produktions­schritt `Reinigung`, Bemerkung „Ultraschall“ ✓ ok  | MANUFACTURER               |
 | 4️⃣ | **Lot abschließen**                                           | QC                         |
 | 5️⃣ | Transfer zu Distributor                                       | OWNER / QC (nach Approval) |
 | 6️⃣ | Historie & PDF-Audit via UI exportieren                       | alle                       |
