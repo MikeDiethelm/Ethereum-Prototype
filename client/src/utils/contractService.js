@@ -151,6 +151,10 @@ export const offLotRejected = async () => {
     contract.removeAllListeners("LotRejected");
 };
 
+export const lotExists = async (id) => {
+    await initialize();
+    return await contract.exists(id);
+};
 
 // Reparatur zurück an Hersteller senden
 export const returnToManufacturer = async (lotId, bemerkung) => {

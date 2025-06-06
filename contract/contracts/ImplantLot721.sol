@@ -249,6 +249,10 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
         return _lotInfo[id].transfers;
     }
 
+    function exists(uint256 id) public view returns (bool) {
+        return _lotInfo[id].transfers.length > 0;
+    }
+
     /* ---------- ERC-165 ---------- */
     function supportsInterface(
         bytes4 i

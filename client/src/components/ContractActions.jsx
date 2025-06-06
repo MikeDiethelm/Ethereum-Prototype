@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     mintLot,
     getLotStatus,
@@ -7,6 +7,7 @@ import {
     transferByRole,
     rejectLot,
     requestAccount,
+    lotExists,
     returnToManufacturer,
     canBeClosed
 } from "../utils/contractService";
@@ -26,28 +27,34 @@ function ContractActions({ role }) {
     const [rejectNote, setRejectNote] = useState("");
     const [closable, setClosable] = useState(true);
 
-
-    useEffect(() => {
-        const fetchStatus = async () => {
-            if (!lotId) {
-                setStatus("");
-                setClosable(true);
+    const fetchStatus = useCallback(async (id = lotId) => {
+        if (!id) {
+            setStatus("");
+            setClosable(true);
+            return;
+        }
+        try {
+            const exists = await lotExists(id);
+            if (!exists) {
+                setStatus("❌ ID noch nicht vergeben");
                 return;
             }
 
-            try {
-                setStatus(await getLotStatus(lotId));
-
-                const result = await canBeClosed(lotId); // 🆕
-                setClosable(result);
-            } catch (e) {
-                console.error("Status-Abruf fehlgeschlagen:", e);
-                setStatus("unbekannt");
-                setClosable(true);
-            }
-        };
-        fetchStatus();
+            const result = await getLotStatus(id);
+            setStatus(result);
+            setClosable(await canBeClosed(id));
+        } catch (e) {
+            console.error("Fehler beim Status-Abruf:", e);
+            setStatus("unbekannt");
+            setClosable(true);
+        }
     }, [lotId]);
+
+
+    useEffect(() => {
+        fetchStatus();
+    }, [lotId, fetchStatus]);
+
 
 
     const handleMint = async () => {
@@ -55,10 +62,12 @@ function ContractActions({ role }) {
             const currentAccount = await requestAccount();
             await mintLot(currentAccount, lotId, "");
             toast.success("NFT erfolgreich gemintet!");
+            await fetchStatus(); // Status direkt nach dem Mint aktualisieren
         } catch (e) {
             toast.error("Mint fehlgeschlagen: " + e.message);
         }
     };
+
 
     const handleStep = async () => {
         try {
