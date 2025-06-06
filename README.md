@@ -30,7 +30,6 @@ Ethereum-Prototype
 │  │  │  ├─ ContractActions.jsx
 │  │  │  ├─ ContractInfo.jsx
 │  │  │  ├─ LotHistory.jsx
-│  │  │  ├─ NFTPreview.jsx
 │  │  │  ├─ RoleManager.jsx
 │  │  │  └─ TransferHistory.jsx
 │  │  ├─ utils/
@@ -55,11 +54,11 @@ Ethereum-Prototype
    ├─ coverage/                  # solidity-coverage HTML/JSON
    ├─ ignition/                  # (Hardhat Ignition Boilerplate)
    ├─ typechain-types/           # Typings für Ethers v6
-   ├─ constants.ts               # RPC / Private-Key Konfig
+   ├─ constants.ts               # RPC / `Private-Key Konfig`
    ├─ hardhat.config.ts
    ├─ .solcover.js               # Coverage-Konfiguration
    ├─ package.json               # Contract-Dependencies
-   └─ README.md                  # (optional Contract-Readme)
+   └─ README.md                  # Contract-Readme
 
 ````
 
