@@ -159,6 +159,13 @@ export const returnToManufacturer = async (lotId, bemerkung) => {
     await tx.wait();
 };
 
+export const transferByRole = async (to, tokenId) => {
+    await initialize();
+    const tx = await contract.transferByRole(to, tokenId);
+    await tx.wait();
+};
+
+
 // Event-Listener für Reparatur-Rückgabe
 export const onLotReturned = (handler) => {
     if (contract) {

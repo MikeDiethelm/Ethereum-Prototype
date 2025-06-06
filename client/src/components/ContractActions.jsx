@@ -4,7 +4,7 @@ import {
     getLotStatus,
     addStep,
     closeLot,
-    transferNFT,
+    transferByRole,
     rejectLot,
     requestAccount,
     returnToManufacturer,
@@ -21,7 +21,6 @@ function ContractActions({ role }) {
     const [stepNote, setStepNote] = useState("");
     const [stepOK, setStepOK] = useState(true);
 
-    const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
     const [transferId, setTransferId] = useState("");
 
@@ -93,7 +92,7 @@ function ContractActions({ role }) {
 
     const handleTransfer = async () => {
         try {
-            await transferNFT(from, to, transferId);
+            await transferByRole(to, transferId);
             toast.success("Transfer erfolgreich!");
         } catch (e) {
             toast.error("Fehler beim Transfer: " + e.message);
@@ -238,13 +237,7 @@ function ContractActions({ role }) {
 
             <hr />
 
-            {/* Transfer */}
             <h3>Transfer NFT</h3>
-            <input
-                placeholder="Von (from)"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-            />
             <input
                 placeholder="Nach (to)"
                 value={to}

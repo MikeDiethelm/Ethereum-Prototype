@@ -65,6 +65,24 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
         );
     }
 
+    function transferByRole(address to, uint256 tokenId) external {
+        address from = ownerOf(tokenId);
+
+        require(
+            _lotInfo[tokenId].status == Status.Abgeschlossen,
+            "Transfer nur nach QS-Freigabe"
+        );
+
+        require(
+            isApprovedOrOwner(msg.sender, tokenId) ||
+                hasRole(QC_ROLE, msg.sender) ||
+                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Nicht berechtigt, Transfer auszufuehren"
+        );
+
+        _safeTransfer(from, to, tokenId, "");
+    }
+
     /* ---------- Produktionsschritt ---------- */
     function addStep(
         uint256 id,
@@ -200,7 +218,9 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
                 "Transfer nur nach QS-Freigabe"
             );
             require(
-                isApprovedOrOwner(auth, id),
+                isApprovedOrOwner(auth, id) ||
+                    hasRole(QC_ROLE, auth) ||
+                    hasRole(DEFAULT_ADMIN_ROLE, auth),
                 "Nicht berechtigt, Transfer auszufuehren"
             );
         }
