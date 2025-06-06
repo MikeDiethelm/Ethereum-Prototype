@@ -23,8 +23,8 @@ function ContractActions({ role }) {
     const [to, setTo] = useState("");
     const [transferId, setTransferId] = useState("");
 
-    const [rejectNote, setRejectNote] = useState(""); // ✅ NEU
-    const [closable, setClosable] = useState(true); // 🆕
+    const [rejectNote, setRejectNote] = useState("");
+    const [closable, setClosable] = useState(true);
 
 
     useEffect(() => {
@@ -53,7 +53,7 @@ function ContractActions({ role }) {
     const handleMint = async () => {
         try {
             const currentAccount = await requestAccount();
-            await mintLot(currentAccount, lotId, ""); // oder ein fixer URI
+            await mintLot(currentAccount, lotId, "");
             toast.success("NFT erfolgreich gemintet!");
         } catch (e) {
             toast.error("Mint fehlgeschlagen: " + e.message);
@@ -63,7 +63,7 @@ function ContractActions({ role }) {
     const handleStep = async () => {
         try {
             await addStep(lotId, stepName, stepOK, stepNote);
-            localStorage.setItem(`note-${lotId}-${stepName}`, stepNote); // ✅ Save
+            localStorage.setItem(`note-${lotId}-${stepName}`, stepNote);
             toast.success("Schritt hinzugefügt.");
         } catch (e) {
             toast.error("Fehler beim Hinzufügen: " + e.message);

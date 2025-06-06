@@ -164,7 +164,7 @@ contract ImplantLot721 is ERC721URIStorage, AccessControl {
         );
         lot.status = Status.Ausschuss;
 
-        emit LotRejected(id, _msgSender(), note); // Event kann weiterhin Klartext enthalten
+        emit LotRejected(id, _msgSender(), note);
     }
 
     /* ---------- Zurück an Hersteller ---------- */
