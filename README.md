@@ -14,7 +14,7 @@ Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 | Produktions­historie  | Schritt-Hash on-chain (keine Klartextdaten) • Klartext-Bemerkungen off-chain (Browser-Storage / DB) |
 | QS-Workflow          | `closeLot`, `rejectLot`, `returnToManufacturer` inkl. Hash-Verifizierung im UI |
 | Frontend             | React + ethers.js • MetaMask-Login • Rollenverwaltung, Tabellen (Steps & Transfers), PDF-Audit-Export |
-| Tests                | Hardhat + solidity-coverage (aktuell ≈ 83 % Stmts / 65 % Branch) |
+| Tests                | Hardhat |
 
 ---
 
@@ -112,8 +112,8 @@ npm start
 | 2️⃣ | **Mint NFT** · Lot ID `1001`, URI `ipfs://…`                  | MANUFACTURER               |
 | 3️⃣ | Produktions­schritt `Reinigung`, Bemerkung „Ultraschall“ ✓ ok  | MANUFACTURER               |
 | 4️⃣ | **Lot abschließen**                                           | QC                         |
-| 5️⃣ | Transfer zu Distributor                                       | OWNER / QC (nach Approval) |
-| 6️⃣ | Historie & PDF-Audit via UI exportieren                       | alle                       |
+| 5️⃣ | Transfer zu Distributor                                       | MANUFACTURER / QC          |
+| 6️⃣ | Historie & PDF-Audit via UI exportieren                       | MANUFACTURER / QC          |
 
 ---
 
@@ -161,5 +161,3 @@ Smart-Contract basiert auf OpenZeppelin v5.0.
 
 ---
 
-> **Hinweis**
-> Dies ist ein Proof-of-Concept. Vor einem produktiven Einsatz sind Hardening, Security-Audit sowie MDR / FDA-konforme Validierung erforderlich.
