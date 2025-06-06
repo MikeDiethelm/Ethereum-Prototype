@@ -114,34 +114,46 @@ function ContractActions({ role }) {
 
     return (
         <div className="actions">
-            <h2>Interaktion mit Contract</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+                <h2 style={{ margin: 0 }}>Interaktion mit Contract</h2>
+                <input
+                    placeholder="Lot ID"
+                    value={lotId}
+                    onChange={(e) => setLotId(e.target.value)}
+                    style={{
+                        border: !lotId ? "1px solid red" : "1px solid #ccc",
+                        backgroundColor: !lotId ? "#fff0f0" : "white",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        minWidth: "150px"
+                    }}
+                />
+            </div>
 
-            {/* Mint */}
-            <input
-                placeholder="Lot ID"
-                value={lotId}
-                onChange={(e) => setLotId(e.target.value)}
-            />
-            <button
-                onClick={handleMint}
-                disabled={!["Hersteller", "Admin"].includes(role)}
-                title={
-                    !["Hersteller", "Admin"].includes(role)
-                        ? "Nur Hersteller oder Admin dürfen minten"
-                        : ""
-                }
-            >
-                Mint NFT
-            </button>
-            {!["Hersteller", "Admin"].includes(role) && (
-                <p style={{ color: "gray", fontSize: "0.9em" }}>
-                    🔒 Nur Hersteller oder Admin dürfen NFTs minten.
-                </p>
-            )}
+            <div style={{ marginBottom: "1rem" }}>
+                <button
+                    onClick={handleMint}
+                    disabled={!["Hersteller", "Admin"].includes(role)}
+                    title={
+                        !["Hersteller", "Admin"].includes(role)
+                            ? "Nur Hersteller oder Admin dürfen minten"
+                            : ""
+                    }
+                >
+                    Mint NFT
+                </button>
 
-            {status && <p>Status: {status}</p>}
+                {!["Hersteller", "Admin"].includes(role) && (
+                    <p style={{ color: "gray", fontSize: "0.9em", marginTop: "0.5rem" }}>
+                        🔒 Nur Hersteller oder Admin dürfen NFTs minten.
+                    </p>
+                )}
+
+                {status && <p style={{ marginTop: "0.5rem" }}>Status: {status}</p>}
+            </div>
 
             <hr />
+
 
             {/* Produktionsschritt */}
             <h3>Produktionsschritt</h3>
