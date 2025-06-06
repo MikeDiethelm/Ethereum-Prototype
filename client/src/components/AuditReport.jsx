@@ -9,7 +9,6 @@ import {
 } from "@react-pdf/renderer";
 import { ethers } from "ethers";
 
-// Styles für das PDF
 const styles = StyleSheet.create({
     page: {
         padding: 30,
@@ -24,30 +23,41 @@ const styles = StyleSheet.create({
         borderBottom: 1,
         paddingBottom: 4,
         marginBottom: 5,
+        backgroundColor: "#eeeeee",
+        fontWeight: "bold",
     },
     row: {
         flexDirection: "row",
         borderBottom: 0.5,
-        paddingVertical: 2,
+        paddingVertical: 6,
+        paddingHorizontal: 2,
+        alignItems: "center",
     },
     colTiny: {
-        width: "6%",
-        paddingRight: 5,
+        width: "5%",
+        textAlign: "center",
+        fontFamily: "Courier-Bold",
+    },
+    colTinyRightPad: {
+        width: "5%",
+        textAlign: "center",
+        fontFamily: "Courier-Bold",
+        paddingRight: 6,
     },
     colSmall: {
-        width: "14%",
-        paddingRight: 5,
+        width: "12%",
+        paddingRight: 4,
     },
     colMedium: {
-        width: "20%",
-        paddingRight: 5,
+        width: "22%",
+        paddingRight: 4,
     },
     colLarge: {
-        width: "40%",
-        paddingRight: 5,
+        width: "44%",
         fontSize: 8,
-        fontFamily: "Courier", // monospaced
-        wordBreak: "break-word",
+        fontFamily: "Courier",
+        color: "#555",
+        lineHeight: 1.3,
     },
 });
 
@@ -55,17 +65,17 @@ const AuditReportDocument = ({ lotId, steps }) => (
     <Document>
         <Page size="A4" style={styles.page}>
             <Text>Audit Report – Lot {lotId}</Text>
-            <Text>Exportdatum: {new Date().toLocaleString()}</Text>
+            <Text>Exportdatum: {new Date().toLocaleString("de-DE")}</Text>
 
             <View style={styles.section}>
                 <View style={styles.tableHeader}>
                     <Text style={styles.colTiny}>#</Text>
                     <Text style={styles.colSmall}>Schritt</Text>
                     <Text style={styles.colSmall}>Zeit</Text>
-                    <Text style={styles.colTiny}>OK</Text>
+                    <Text style={styles.colTinyRightPad}>OK</Text>
                     <Text style={styles.colMedium}>Bemerkung (off-chain)</Text>
-                    <Text style={styles.colTiny}>Ver.</Text>
-                    <Text style={styles.colMedium}>Bemerkung Hash (on-chain)</Text>
+                    <Text style={styles.colTinyRightPad}>Ver.</Text>
+                    <Text style={styles.colLarge}>Bemerkung Hash (on-chain)</Text>
                 </View>
 
                 {steps.map((step, index) => {
@@ -76,11 +86,19 @@ const AuditReportDocument = ({ lotId, steps }) => (
                         <View key={index} style={styles.row}>
                             <Text style={styles.colTiny}>{index + 1}</Text>
                             <Text style={styles.colSmall}>{step.name}</Text>
-                            <Text style={styles.colSmall}>{step.timestamp}</Text>
-                            <Text style={styles.colTiny}>{step.bestanden ? "YES" : "NO"}</Text>
+                            <Text style={styles.colSmall}>
+                                {new Date(step.timestamp).toLocaleString("de-DE")}
+                            </Text>
+                            <Text style={styles.colTinyRightPad}>
+                                {step.bestanden ? "YES" : "NO"}
+                            </Text>
                             <Text style={styles.colMedium}>{step.bemerkung}</Text>
-                            <Text style={styles.colTiny}>{verified ? "YES" : "NO"}</Text>
-                            <Text style={styles.colLarge}>{step.bemerkungHash.toString()}</Text>
+                            <Text style={styles.colTinyRightPad}>
+                                {verified ? "YES" : "NO"}
+                            </Text>
+                            <Text style={styles.colLarge}>
+                                {step.bemerkungHash.toString()}
+                            </Text>
                         </View>
                     );
                 })}
