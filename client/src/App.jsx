@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import ConnectWalletButton from "./components/ConnectWalletButton";
 import ContractInfo from "./components/ContractInfo";
 import ContractActions from "./components/ContractActions";
+import './App.css';
 import LotHistory from "./components/LotHistory";
 import TransferHistory from "./components/TransferHistory";
-import NFTPreview from "./components/NFTPreview";
 import RoleManager from "./components/RoleManager";
 import {
     requestAccount,
@@ -92,7 +92,6 @@ function App() {
                         <>
                             <LotHistory role={role} />
                             <TransferHistory />
-                            <NFTPreview />
                         </>
                     )}
 

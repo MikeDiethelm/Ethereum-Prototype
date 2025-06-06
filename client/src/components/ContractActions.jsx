@@ -14,7 +14,6 @@ import { toast } from "react-toastify";
 
 function ContractActions({ role }) {
     const [lotId, setLotId] = useState("");
-    const [uri, setUri] = useState("");
     const [status, setStatus] = useState("");
 
     const [stepName, setStepName] = useState("");
@@ -54,7 +53,7 @@ function ContractActions({ role }) {
     const handleMint = async () => {
         try {
             const currentAccount = await requestAccount();
-            await mintLot(currentAccount, lotId, uri);
+            await mintLot(currentAccount, lotId, ""); // oder ein fixer URI
             toast.success("NFT erfolgreich gemintet!");
         } catch (e) {
             toast.error("Mint fehlgeschlagen: " + e.message);
@@ -122,11 +121,6 @@ function ContractActions({ role }) {
                 placeholder="Lot ID"
                 value={lotId}
                 onChange={(e) => setLotId(e.target.value)}
-            />
-            <input
-                placeholder="Token URI (z. B. https://...)"
-                value={uri}
-                onChange={(e) => setUri(e.target.value)}
             />
             <button
                 onClick={handleMint}
