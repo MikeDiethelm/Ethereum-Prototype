@@ -80,7 +80,7 @@ Ethereum-Prototype
 
 ### 2 | Smart Contract deployen
 
-Dazu muss erst in contract/constants.ts das Feld PRIVATE_KEY entsprechend gesetzt werden.
+Dazu muss erst in `contract/constants.ts` das Feld `PRIVATE_KEY` entsprechend gesetzt werden.
 
 ```bash
 cd contract
