@@ -62,7 +62,7 @@ function ContractActions({ role }) {
             const currentAccount = await requestAccount();
             await mintLot(currentAccount, lotId, "");
             toast.success("NFT erfolgreich gemintet!");
-            await fetchStatus(); // Status direkt nach dem Mint aktualisieren
+            await fetchStatus();
         } catch (e) {
             toast.error("Mint fehlgeschlagen: " + e.message);
         }

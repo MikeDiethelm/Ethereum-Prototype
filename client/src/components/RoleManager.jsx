@@ -10,7 +10,7 @@ const ROLES = [
 ];
 
 function RoleManager() {
-    const [role, setRole] = useState(ROLES[1].value);   // Standard = Manufacturer
+    const [role, setRole] = useState(ROLES[1].value);
     const [target, setTarget] = useState("");
 
     const handleGrant = async () => {

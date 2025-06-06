@@ -12,7 +12,6 @@ function LotHistory({ role }) {
         try {
             const result = await getSteps(lotId);
 
-            // Versuche, lokal gespeicherte Bemerkungen zu laden
             const stepsWithNotes = result.map((step) => {
                 const noteKey = `note-${lotId}-${step.name}`;
                 const localNote = localStorage.getItem(noteKey) ?? "";

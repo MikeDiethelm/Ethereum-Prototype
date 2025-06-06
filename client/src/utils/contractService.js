@@ -97,7 +97,7 @@ export const getSteps = async (lotId) => {
         name: s[0],
         timestamp: new Date(Number(s[1]) * 1000).toLocaleString(),
         bestanden: s[2],
-        bemerkungHash: s[3], // s[3] ist jetzt der Hash
+        bemerkungHash: s[3],
     }));
 };
 
@@ -135,7 +135,7 @@ export const rejectLot = async (lotId, bemerkung) => {
 
 /* ---------- Ergänzung: Event-Listener ---------- */
 export const onLotRejected = async (handler) => {
-    await initialize(); // ← sicherstellen, dass contract vorhanden ist
+    await initialize();
     contract.on("LotRejected", (lotId, qc, note, event) => {
         handler({
             lotId: Number(lotId),
