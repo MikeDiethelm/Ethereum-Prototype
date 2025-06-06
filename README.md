@@ -1,154 +1,164 @@
-# 🦴 ImplantLot721 – Ethereum NFT Produktionsnachverfolgung
+````markdown
+# 🦴 ImplantLot721 – Blockchain-basierte Produktions­nachverfolgung
 
-Ein Ethereum-DApp-Prototyp zur fälschungssicheren Verwaltung von Implantat-Produktionschargen mittels ERC-721 NFTs. Entwickelt im Rahmen einer Bachelorarbeit an der ZHAW.
+Ein leichtgewichtiger **Ethereum-DApp-Prototyp** zur fälschungs­sicheren Verwaltung von Implantat-Losen.  
+Entstanden im Rahmen der Bachelor­arbeit an der ZHAW (School of Engineering).
 
 ---
 
-## ⚙️ Features
+## ⚙️ Funktionsumfang
 
-- ✅ ERC-721 NFT mit Produktionshistorie & Metadaten
-- ✅ Hersteller & QS-Rollen (AccessControl mit `grantRole`)
-- ✅ Produktionsschritte dokumentieren
-- ✅ Statusanzeige: `InProduktion`, `Ausschuss`, `Abgeschlossen`
-- ✅ Live-Verbindung via MetaMask (Web3)
-- ✅ Zuweisung von Rollen direkt per Web-GUI
-- ✅ NFT-Ansicht mit `tokenURI`-Vorschau (Name, Bild, Beschreibung)
-- ✅ Produktions- & Transferhistorie als Tabelle
-- ✅ Integration ins ZHAW-Testnetz (Chain-ID `24888`)
-- ✅ Auto-Deployment: schreibt ABI & Adresse direkt ins Frontend (`constants.js`)
+| Kategorie            | Feature |
+|----------------------|---------|
+| NFT / Contract       | ERC-721-Token pro Produktionslos • Rollenbasiertes Access Control (`MANUFACTURER`, `QC`, `ADMIN`) |
+| Produktions­historie  | Schritt-Hash on-chain (keine Klartextdaten) • Klartext-Bemerkungen off-chain (Browser-Storage / DB) |
+| QS-Workflow          | `closeLot`, `rejectLot`, `returnToManufacturer` inkl. Hash-Verifizierung im UI |
+| Frontend             | React + ethers.js • MetaMask-Login • Rollenverwaltung, Tabellen (Steps & Transfers), PDF-Audit-Export |
+| Tests                | Hardhat + solidity-coverage (aktuell ≈ 83 % Stmts / 65 % Branch) |
 
 ---
 
 ## 🧱 Projektstruktur
 
-```bash
-Ethereum-Prototype/
-├── contract/                  # Hardhat-Projekt für Smart Contracts
-│   ├── contracts/
-│   │   └── ImplantLot721.sol         # Der ERC-721 NFT Contract
-│   ├── scripts/
-│   │   └── deploy.ts                 # Deployment inkl. Export ins Frontend
-│   ├── test/
-│   │   └── ImplantLot721.ts          # Unit Tests
-│   ├── constants.ts                  # RPC & PRIVATE_KEY für ZHAW-Testnetz
-│   ├── hardhat.config.ts
-│   └── ...
+Ethereum-Prototype
+├─ client/                       # React-App
+│  ├─ public/                    # statische Assets
+│  ├─ src/
+│  │  ├─ components/             # UI-Bausteine
+│  │  │  ├─ AuditReport.jsx
+│  │  │  ├─ ConnectWalletButton.jsx
+│  │  │  ├─ ContractActions.jsx
+│  │  │  ├─ ContractInfo.jsx
+│  │  │  ├─ LotHistory.jsx
+│  │  │  ├─ NFTPreview.jsx
+│  │  │  ├─ RoleManager.jsx
+│  │  │  └─ TransferHistory.jsx
+│  │  ├─ utils/
+│  │  │  ├─ contractService.js   # Call-Wrapper (ethers.js)
+│  │  │  └─ constants.js         # ⚠️ wird beim Deploy überschrieben
+│  │  ├─ App.jsx
+│  │  ├─ App.css
+│  │  ├─ index.js
+│  │  └─ index.css
+│  ├─ package.json               # Frontend-Dependencies
+│  └─ README.md                  # (optional projektspezifisch)
 │
-├── client/                    # React-Frontend für Interaktion mit dem Contract
-│   ├── src/
-│   │   ├── components/              # UI-Komponenten
-│   │   │   ├── ConnectWalletButton.jsx
-│   │   │   ├── ContractActions.jsx
-│   │   │   ├── ContractInfo.jsx
-│   │   │   ├── LotHistory.jsx
-│   │   │   ├── NFTPreview.jsx
-│   │   │   ├── RoleManager.jsx
-│   │   │   └── TransferHistory.jsx
-│   │   ├── utils/
-│   │   │   ├── contractService.js     # Contract-Funktionen (mint, grantRole, etc.)
-│   │   │   └── constants.js           # ✨ Automatisch generiert beim Deployment
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── index.js
-│   │   └── index.css
-│   └── ...
-│
-├── README.md                 # ← Dieses Dokument
+└─ contract/                     # Hardhat-Workspace
+   ├─ contracts/
+   │  └─ ImplantLot721.sol       # ERC-721-Smart-Contract
+   ├─ scripts/
+   │  └─ deploy.ts               # Deployment + ABI/Addr-Export → client
+   ├─ test/
+   │  └─ ImplantLot721.ts        # TypeScript-Unit- & Coverage-Tests
+   ├─ artifacts/                 # Build-Artefakte (autogen)
+   ├─ cache/                     # Hardhat-Cache (autogen)
+   ├─ coverage/                  # solidity-coverage HTML/JSON
+   ├─ ignition/                  # (Hardhat Ignition Boilerplate)
+   ├─ typechain-types/           # Typings für Ethers v6
+   ├─ constants.ts               # RPC / Private-Key Konfig
+   ├─ hardhat.config.ts
+   ├─ .solcover.js               # Coverage-Konfiguration
+   ├─ package.json               # Contract-Dependencies
+   └─ README.md                  # (optional Contract-Readme)
+
+````
+
+---
 
 ## 🚀 Setup & Deployment
 
----
+### 1 | Voraussetzungen
 
-### 🔧 Voraussetzungen
-
-- **Node.js** (empfohlen: LTS-Version, **nicht** v21)
-- **MetaMask** (Browser-Erweiterung)
-- **Zugang zum ZHAW-Testnetz:**
-  - **RPC:** `http://185.48.228.49:8545/`
-  - **Chain ID:** `24888`
-  - Test-Account mit ETH
+| Tool / Dienst     | Version / Info                                      |
+| ----------------- | --------------------------------------------------- |
+| **Node.js**       | LTS (>=18, <21)                                     |
+| **MetaMask**      | aktuelle Browser-Extension                          |
+| **ZHAW-Testnetz** | RPC `http://185.48.228.49:8545/` • Chain-ID `24888` |
+| **ETH-Faucet**    | Test-ETH für deinen Account                         |
 
 ---
 
-### 🔌 Contract deployen
+### 2 | Smart Contract deployen
 
 ```bash
 cd contract
+npm install          # einmalig
 npx hardhat compile
 npx hardhat run scripts/deploy.ts --network zhaw
+```
 
-## 🚀 Setup & Deployment
-
-### 🔧 Voraussetzungen
-
-| Tool / Service | Version / URL |
-|----------------|---------------|
-| **Node.js**    | LTS (empfohlen), **nicht** v21 |
-| **MetaMask**   | Browser-Erweiterung |
-| **ZHAW-Testnetz** | RPC `http://185.48.228.49:8545/`  ·  Chain-ID `24888` |
-| Test-Account   | Mit etwas ETH (Faucet / Transfer) |
+* **Adresse** und **ABI** werden automatisch nach
+  `client/src/utils/constants.js` geschrieben (Überschreibt die Datei!).
 
 ---
 
-### 🔌 Contract deployen
+### 3 | Frontend starten
+
+```bash
+cd ../client
+npm install          # einmalig
+npm start          
+# Browser: http://localhost:3000
+```
+
+---
+
+## ✅ Schnelltest-Workflow
+
+| #   | Aktion                                                       | Rolle                      |
+| --- | -------------------------------------------------------------|--------------------------- |
+| 1️⃣ | Wallet verbinden                                              | –                          |
+| 2️⃣ | **Mint NFT** · Lot ID `1001`, URI `ipfs://…`                  | MANUFACTURER               |
+| 3️⃣ | Produktions­schritt `Reinigung`, Bemerkung „Ultraschall“ ✓ ok  | MANUFACTURER               |
+| 4️⃣ | **Lot abschließen**                                           | QC                         |
+| 5️⃣ | Transfer zu Distributor                                       | OWNER / QC (nach Approval) |
+| 6️⃣ | Historie & PDF-Audit via UI exportieren                       | alle                       |
+
+---
+
+## 🛠 Rollen via UI vergeben
+
+1. Rolle auswählen (`MANUFACTURER_ROLE`, `QC_ROLE` …)
+2. Zieladresse (0x…) eingeben
+3. „**Rolle vergeben**“
+
+---
+
+## 🧪 Tests & Coverage
 
 ```bash
 cd contract
-npx hardhat compile
-npx hardhat run scripts/deploy.ts --network zhaw
+npx hardhat test                # Unit-Tests (8 passing)
+npx hardhat coverage            # Sol-Coverage Report
+```
 
-### 📦 Ergebnis nach dem Deploy
+Beispiel Output:
 
-- Contract-Adresse **und** ABI werden **automatisch** nach  
-  `client/src/utils/constants.js` geschrieben.  
-- 💡 **Achtung:** Diese Datei wird bei jedem Deploy **überschrieben**!
-
----
-
-### 💻 Frontend starten
-
-```bash
-cd client
-npm install
-npm run dev     # oder: npm start
-
-➡️ Im Browser öffnen: http://localhost:3000
-
-## ✅ Workflow-Beispiel
-
-| Schritt | Aktion |
-|--------:|--------|
-| **1️⃣** | **Wallet verbinden**  
-MetaMask-Popup bestätigen |
-| **2️⃣** | **NFT erstellen**  
-• Lot-ID: `1001`  
-• Token-URI: `https://example.com/metadata/1001.json`  
-→ **Mint NFT** |
-| **3️⃣** | **Produktionsschritt hinzufügen**  
-• Schrittname: `Reinigung`  
-• Bemerkung: `mit Ultraschall`  
-• ✅ „bestanden“ aktivieren  
-→ **Schritt hinzufügen** |
-| **4️⃣** | **Lot abschließen**  
-(nur mit Rolle `QC_ROLE`) |
-| **5️⃣** | **Transfers & Historie** im UI einsehen |
-| **6️⃣** | **NFT-Metadaten anzeigen**  
-über hinterlegte `tokenURI`-Vorschau (Name, Beschreibung, Bild) |
+```
+ImplantLot721
+  ✓ Mint → Steps → Close → Transfer  (64ms)
+  ✓ verhindert Transfer vor QS-Freigabe
+  …
+  All files  (82.9 % Stmts / 64.6 % Branch / 75 % Funcs / 82.9 % Lines)
+```
 
 ---
 
-## 🛠 Rollenzuweisung (Frontend)
+## 🔐 Sicherheits­notizen des Prototyps
 
-1. Trage die Rolle ein:
-   - `MANUFACTURER_ROLE`
-   - `QC_ROLE`
-2. Zieladresse angeben (z. B. `0xAbc123…`)
-3. → **„Rolle vergeben“** klicken
+Der Contract läuft derzeit auf einem **nicht öffentlich gerouteten Hardhat-Node**.
+On-chain werden **nur Hashes & Statuscodes** gespeichert – Klartext-Daten verbleiben off-chain (Browser-Storage oder später DB / IPFS).
+Jede schreibende Funktion prüft die zugewiesenen Rollen (OpenZeppelin `AccessControl`).
+Ohne Rolle → reines **Read-Only**.
 
 ---
 
-## 🧪 Smart-Contract Tests (optional)
+## 📄 Lizenz
 
-```bash
-cd contract
-npx hardhat test
+MIT – siehe `LICENSE`
+Smart-Contract basiert auf OpenZeppelin v5.0.
+
+---
+
+> **Hinweis**
+> Dies ist ein Proof-of-Concept. Vor einem produktiven Einsatz sind Hardening, Security-Audit sowie MDR / FDA-konforme Validierung erforderlich.
